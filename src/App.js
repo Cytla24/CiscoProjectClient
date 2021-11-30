@@ -13,6 +13,10 @@ import {
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-alpine.css";
 
+// axios.defaults.baseURL = "http://localhost:5000";
+axios.defaults.baseURL =
+	"http://ciscoproject1-env-1.eba-sw2bzc33.us-east-2.elasticbeanstalk.com";
+
 function App() {
 	const [value, setValue] = useState("entireDb");
 	const handleRadioChange = (e) => {
@@ -55,7 +59,7 @@ function App() {
 					flex: 1,
 				}}
 			>
-				{value == "singleFile" ? <SingleFile /> : <EntireDb />}
+				{value === "singleFile" ? <SingleFile /> : <EntireDb />}
 			</div>
 		</div>
 	);
@@ -65,9 +69,7 @@ function Table({ inputFileFlows }) {
 	const [gridApi, setGridApi] = useState(null);
 	const [selectedRow, setSelectedRow] = useState(null);
 	const [shownFields, setShownFields] = useState(importantColumns);
-	const [allFields, setAllFields] = useState(
-		Object.keys((inputFileFlows && inputFileFlows[0]) || [])
-	);
+
 	const onGridReady = (params) => {
 		setGridApi(params.api);
 	};
@@ -229,10 +231,10 @@ function EntireDb() {
 	const [inputFileFlows, setInputFileFlows] = useState();
 
 	useEffect(() => {
-		axios.get("http://localhost:5000/get-all-flows").then((response) => {
+		axios.get("/get-all-flows").then((response) => {
 			let flows = response.data;
 			flows = parseFlowsIps(flows, ["src_ip", "dst_ip"]);
-			setInputFileFlows(response.data);
+			setInputFileFlows(flows);
 		});
 		return () => {};
 	}, []);
@@ -246,11 +248,9 @@ function EntireDb() {
 		>
 			<button
 				onClick={() => {
-					axios
-						.get("http://localhost:5000/delete-all-flows")
-						.then((response) => {
-							console.log(response.data);
-						});
+					axios.get("/delete-all-flows").then((response) => {
+						console.log(response.data);
+					});
 				}}
 			>
 				Clear db
@@ -273,7 +273,7 @@ function SingleFile() {
 		formData.append("file", inputFile, inputFile.name);
 		const queryParams = addToDb ? "?addToDb=1" : "";
 		axios
-			.post("http://localhost:5000/parse-file" + queryParams, formData)
+			.post("/parse-file" + queryParams, formData)
 			.then((response) => {
 				let flows = response.data;
 				flows = parseFlowsIps(flows, ["src_ip", "dst_ip"]);
